@@ -14,15 +14,24 @@ class TOTP {
             '0'
         );
 
-        const hmac = CryptoJS.HmacSHA1(
-            CryptoJS.enc.Hex.parse(timeHex),
-            this.base32tohex(key)
-        );
+        // Convert timeHex to a WordArray for CryptoJS
+        const timeBytes = CryptoJS.enc.Hex.parse(timeHex);
+        // Convert base32 key to a WordArray
+        const keyBytes = CryptoJS.enc.Hex.parse(this.base32tohex(key));
+        
+        // Create HMAC using CryptoJS
+        const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo[algorithm.toUpperCase()], keyBytes);
+        hmac.update(timeBytes);
+        const hmacResult = hmac.finalize();
+        
+        // Convert HMAC result to hex
+        const hmacHex = hmacResult.toString(CryptoJS.enc.Hex);
 
-        const offset = parseInt(hmac.toString(CryptoJS.enc.Hex).slice(-1), 16);
+        // Extract OTP
+        const offset = parseInt(hmacHex.slice(-1), 16);
         const otp = (
             parseInt(
-                hmac.toString(CryptoJS.enc.Hex).substr(offset * 2, 8),
+                hmacHex.substr(offset * 2, 8),
                 16
             ) & 0x7fffffff
         )
