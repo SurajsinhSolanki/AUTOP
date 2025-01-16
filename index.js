@@ -69,15 +69,37 @@ class TOTP {
     }
 }
 
+// Function to update OTP and expiration time
+function updateOTP() {
+    const secret = document.getElementById('secret').value;
+    if (secret) {
+        const otpData = TOTP.generate(secret);
+        const otpResult = document.getElementById('otp-result');
+        otpResult.innerText = otpData.otp;
+    }
+}
+
 // Event listener for the form submission
 document
     .getElementById('otp-form')
     .addEventListener('submit', function (event) {
         event.preventDefault();
-
-        const secret = document.getElementById('secret').value;
-        const otpData = TOTP.generate(secret);
-        document.getElementById('otp-result').innerText = `OTP: ${
-            otpData.otp
-        }, Expires: ${new Date(otpData.expires).toLocaleTimeString()}`;
+        updateOTP();
     });
+
+// Add event listener to copy OTP to clipboard on click
+document
+    .getElementById('otp-result')
+    .addEventListener('click', function () {
+        const otpText = document.getElementById('otp-result').innerText;
+        navigator.clipboard.writeText(otpText)
+            .then(() => {
+                alert("OTP copied to clipboard!");
+            })
+            .catch((error) => {
+                alert("Failed to copy OTP: " + error);
+            });
+    });
+
+// Refresh OTP every 15 seconds
+setInterval(updateOTP, 15000);
